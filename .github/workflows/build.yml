@@ -27,5 +27,6 @@ jobs:
           bindings-ref: 1605f500d053f8de122bf5c7dc6d17c24866e02e
           configure-args: -DSKIP_BUILDING_CODEGEN=OFF
           target: Win64
+          combine: true
       # The action uploads the finished .geode itself as the artifact
       # "geode-build-win" (download it from the run's Summary page).
