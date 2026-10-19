@@ -40,33 +40,3 @@ points. It does not read engine internals it cannot verify. If you'd prefer anot
 
 ### Option B: local Windows build
 Install the Geode CLI and SDK, then run `.\build-local.ps1` from this folder in PowerShell.
-
-## Why your earlier build failed (diagnosis)
-
-Errors like `SequenceTriggerState is undefined` and `EffectManagerState is undefined` come from the
-**generated bindings headers**, not from your mod code. Findings from the actual sources:
-
-* SDK `v5.11.2` fetches `geode-sdk/bindings` with `GIT_TAG "main"` and `NO_CACHE` (see the SDK's
-  root `CMakeLists.txt`), so every fresh configure downloads whatever `main` is *today*.
-* The types **are** defined in the 2.2081 bindings (`SequenceTriggerState` in `Extras.bro`,
-  `EffectManagerState` in `GeometryDash.bro`).
-* The bindings **code generator changed after the 5.11.2 tag** (commits on 2026-10-16 to
-  2026-10-18 modify `codegen/src/PredeclareGen.cpp` and `BindingGen.cpp`: the forward
-  declaration / dependency generation). That is exactly the part that emits `depends(...)` ordering.
-* That makes an SDK-vs-bindings version mismatch the most likely root cause. Disabling unity builds or
-  precompiled headers cannot fix it, which matches what you saw.
-
-**Fix applied:** bindings are pinned to `1605f500d053f8de122bf5c7dc6d17c24866e02e` (the last
-bindings commit before the SDK tag) both in the CI workflow (`bindings-ref`) and in
-`build-local.ps1` (`GEODE_BINDINGS_REPO_PATH`). This diagnosis is evidence-based but
-**unconfirmed by an actual compile**; if the pinned build still fails, send me the first error line.
-
-## Layout
-```
-mod.json  CMakeLists.txt  build-local.ps1  .github/workflows/build.yml
-src/BufferLogic.hpp   pure scheduling logic (unit-tested)
-src/Settings.hpp      persistence (Geode saved values)
-src/Menu.hpp/.cpp     glass settings popup
-src/main.cpp          hooks (handleButton, update, resetLevel) + Y hotkey
-tests/test_buffer.cpp g++ -std=c++20 -Isrc tests/test_buffer.cpp && ./a.out
-```
