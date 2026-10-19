@@ -1,0 +1,5 @@
+build/
+bindings-pinned/
+.vs/
+.vscode/
+*.geode

@@ -1,0 +1,30 @@
+name: Build Flux
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - "**"
+
+jobs:
+  build:
+    name: Windows
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build the mod
+        uses: geode-sdk/build-geode-mod@main
+        with:
+          # SDK version comes from mod.json ("geode": "5.11.2").
+          sdk: given
+          # IMPORTANT: SDK v5.11.2 clones geode-sdk/bindings at branch `main` by
+          # default, a moving target whose code generator changed after the 5.11.2
+          # tag. Pin it to the last bindings commit made before the tag
+          # (2026-10-15) so the generated headers match the SDK.
+          bindings: geode-sdk/bindings
+          bindings-ref: 1605f500d053f8de122bf5c7dc6d17c24866e02e
+          target: Win64
+      # The action uploads the finished .geode itself as the artifact
+      # "geode-build-win" (download it from the run's Summary page).
